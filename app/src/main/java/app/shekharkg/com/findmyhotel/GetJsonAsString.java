@@ -20,7 +20,7 @@ public class GetJsonAsString {
       httppost.setEntity(new UrlEncodedFormEntity(query));
       HttpResponse response = httpclient.execute(httppost);
       if(response.getStatusLine().getStatusCode() != 200)
-        return null;
+        return "Something went wrong. Please try again.";
       return EntityUtils.toString(response.getEntity());
 
     } catch (ClientProtocolException e) {

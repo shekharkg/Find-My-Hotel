@@ -1,17 +1,30 @@
 package app.shekharkg.com.findmyhotel;
 
 import android.app.Dialog;
+import android.app.DialogFragment;
+import android.app.FragmentManager;
 import android.content.Intent;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
+
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -23,10 +36,13 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
   private Button actionCheckIn, actionCheckOut, actionSearch;
   private Dialog dialog;
   private DatePicker datePicker;
-  private boolean isCheckInDialog, isLatLngSearch;
+  private boolean isCheckInDialog;
+  private static boolean isLatLngSearch;
   private EditText cityNameET;
   private ImageButton actionLatLng;
-  private String lat, lng;
+  private static String lat, lng;
+  private static GoogleMap map;
+  private static MapDialog mapDialog;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -138,15 +154,69 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
 
       case R.id.chooseOnMapButton:
         isLatLngSearch = true;
-        Toast.makeText(this,"on map search selected",Toast.LENGTH_LONG).show();
+        FragmentManager fm = getFragmentManager();
+        mapDialog = new MapDialog();
+        mapDialog.setRetainInstance(true);
+        mapDialog.show(fm, "map_dialog");
         break;
     }
   }
 
+  public static class MapDialog extends DialogFragment implements GoogleMap.OnMapLoadedCallback, GoogleMap.OnMapClickListener, GoogleMap.OnInfoWindowClickListener {
+
+    private LatLng latLngSelected;
+    public MapDialog() {
+      // Empty constructor required for DialogFragment
+
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+      View view = inflater.inflate(R.layout.map_dialog, container);
+      map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
+      try{
+        map.setMyLocationEnabled(true);
+        map.setOnMapLoadedCallback(this);
+        map.setOnMapClickListener(this);
+        map.setOnInfoWindowClickListener(this);
+      }catch (Exception e){
+        e.printStackTrace();
+      }
+      return view;
+    }
+
+    @Override
+    public void onMapLoaded() {
+      Location location = map.getMyLocation();
+      if (location != null) {
+        LatLng myLocation = new LatLng(location.getLatitude(),location.getLongitude());
+        map.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15));
+      }
+    }
+
+    @Override
+    public void onMapClick(LatLng latLng) {
+      map.clear();
+      latLngSelected = latLng;
+      Marker marker =  map.addMarker(new MarkerOptions().position(latLng).title("Touch to select city"));
+      marker.showInfoWindow();
+    }
+
+    @Override
+    public void onInfoWindowClick(Marker marker) {
+      lat = latLngSelected.latitude+"";
+      lng = latLngSelected.longitude+"";
+      mapDialog.dismiss();
+      mapDialog = null;
+      isLatLngSearch = true;
+    }
+  }
+
+
   private void validateSearchData() {
     String city = cityNameET.getText().toString();
     if(!isLatLngSearch && city.length() < 1){
-      Toast.makeText(this,"Please enter city name",Toast.LENGTH_LONG).show();
+      Toast.makeText(this,"Please enter city name or select in map.",Toast.LENGTH_LONG).show();
       return;
     }
     String checkInDate = actionCheckIn.getText().toString().split(":")[1];
