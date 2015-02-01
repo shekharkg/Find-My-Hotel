@@ -242,6 +242,11 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     String checkOutDate = actionCheckOut.getText().toString().split(":")[1];
     checkOutDate = checkOutDate.split("/")[0].trim() + "/" + checkOutDate.split("/")[1].trim() + "/" + checkOutDate.split("/")[2].trim();
 
+    if(checkInDate.equals(checkOutDate)){
+      Toast.makeText(this,"Please select different checkout date",Toast.LENGTH_LONG).show();
+      return;
+    }
+
     //If search data is correct then start new activity to display results
     Intent searchResult = new Intent(this, HotelListActivity.class);
     Universal U = new Universal();
