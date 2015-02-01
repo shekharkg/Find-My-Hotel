@@ -2,10 +2,12 @@ package app.shekharkg.com.findmyhotel;
 
 import android.app.Dialog;
 import android.app.DialogFragment;
+import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
+import android.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -30,7 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-public class MainActivity extends ActionBarActivity implements View.OnClickListener, View.OnFocusChangeListener {
+public class MainActivity extends ActionBarActivity implements View.OnClickListener {
 
   private Calendar calendar;
   private Button actionCheckIn, actionCheckOut, actionSearch;
@@ -77,7 +79,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     actionCheckOut.setOnClickListener(this);
     actionSearch.setOnClickListener(this);
     actionLatLng.setOnClickListener(this);
-    cityNameET.setOnFocusChangeListener(this);
+    cityNameET.setOnClickListener(this);
   }
 
   @Override
@@ -153,26 +155,38 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         break;
 
       case R.id.chooseOnMapButton:
-        isLatLngSearch = true;
         FragmentManager fm = getFragmentManager();
+        fm.popBackStack();
         mapDialog = new MapDialog();
         mapDialog.setRetainInstance(true);
         mapDialog.show(fm, "map_dialog");
+        break;
+
+      case R.id.selectCity:
+        isLatLngSearch = false;
         break;
     }
   }
 
   public static class MapDialog extends DialogFragment implements GoogleMap.OnMapLoadedCallback, GoogleMap.OnMapClickListener, GoogleMap.OnInfoWindowClickListener {
 
-    private LatLng latLngSelected;
-    public MapDialog() {
-      // Empty constructor required for DialogFragment
-
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+      return inflater.inflate(R.layout.map_dialog, container);
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-      View view = inflater.inflate(R.layout.map_dialog, container);
+    public void onDestroyView(){
+      super.onDestroyView();
+      Fragment fragment = (getFragmentManager().findFragmentById(R.id.map));
+      FragmentTransaction ft = getActivity().getFragmentManager().beginTransaction();
+      ft.remove(fragment);
+      ft.commit();
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+      super.onActivityCreated(savedInstanceState);
       map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
       try{
         map.setMyLocationEnabled(true);
@@ -182,7 +196,6 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
       }catch (Exception e){
         e.printStackTrace();
       }
-      return view;
     }
 
     @Override
@@ -197,17 +210,15 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     @Override
     public void onMapClick(LatLng latLng) {
       map.clear();
-      latLngSelected = latLng;
       Marker marker =  map.addMarker(new MarkerOptions().position(latLng).title("Touch to select city"));
       marker.showInfoWindow();
+      lat = latLng.latitude+"";
+      lng = latLng.longitude+"";
     }
 
     @Override
     public void onInfoWindowClick(Marker marker) {
-      lat = latLngSelected.latitude+"";
-      lng = latLngSelected.longitude+"";
-      mapDialog.dismiss();
-      mapDialog = null;
+      Toast.makeText(getActivity(),lat + "--" + lng, Toast.LENGTH_LONG).show();
       isLatLngSearch = true;
     }
   }
@@ -233,6 +244,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     searchResult.putExtra(U.PROPERTY_TYPE,U.HOTELS);
     searchResult.putExtra(U.LAT,lat);
     searchResult.putExtra(U.LNG,lng);
+    searchResult.putExtra(U.IsLatLngSearch,isLatLngSearch);
     startActivity(searchResult);
   }
 
@@ -251,12 +263,6 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     datePicker = null;
     dialog = null;
     actionCheckOut.setEnabled(true);
-  }
-
-  @Override
-  public void onFocusChange(View v, boolean hasFocus) {
-    if(v.getId() == R.id.selectCity && hasFocus)
-      isLatLngSearch = false;
   }
 
 }

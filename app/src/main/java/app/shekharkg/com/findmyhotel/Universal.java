@@ -17,11 +17,12 @@ public class Universal {
   protected final String HOTELS = "Hotels";
   protected final String LAT = "lat";
   protected final String LNG = "lng";
+  protected final String IsLatLngSearch = "isLatLngSearch";
   protected final String URL = "http://180.92.168.7/hotels";
 
-  protected List<NameValuePair> getQuery(String city, String checkIn, String checkOut, String lat, String lng){
+  protected List<NameValuePair> getQuery(String city, String checkIn, String checkOut, String lat, String lng, boolean isLatLngSearch){
     List<NameValuePair> query = new ArrayList<NameValuePair>(2);
-    if(city != null)
+    if(!isLatLngSearch)
       query.add(new BasicNameValuePair("location", city));
     else{
       query.add(new BasicNameValuePair("lat", lat));

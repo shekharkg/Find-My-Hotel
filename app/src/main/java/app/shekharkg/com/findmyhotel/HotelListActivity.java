@@ -28,8 +28,9 @@ public class HotelListActivity extends Activity{
     Intent intent = getIntent();
     if(intent != null) {
       Universal U = new Universal();
-      new GetSearchResult(this, U.getQuery(intent.getStringExtra(U.CITY),
-          intent.getStringExtra(U.CHECK_IN), intent.getStringExtra(U.CHECK_OUT), null, null)).execute(U.URL);
+      new GetSearchResult(this, U.getQuery(intent.getStringExtra(U.CITY), intent.getStringExtra(U.CHECK_IN),
+          intent.getStringExtra(U.CHECK_OUT), intent.getStringExtra(U.LAT), intent.getStringExtra(U.LNG),
+          intent.getBooleanExtra(U.IsLatLngSearch,false))).execute(U.URL);
     }
   }
 
