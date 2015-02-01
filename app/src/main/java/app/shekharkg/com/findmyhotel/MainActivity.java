@@ -218,7 +218,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
 
     @Override
     public void onInfoWindowClick(Marker marker) {
-      Toast.makeText(getActivity(),lat + "--" + lng, Toast.LENGTH_LONG).show();
+      Toast.makeText(getActivity(),"Location selected.", Toast.LENGTH_LONG).show();
       isLatLngSearch = true;
     }
   }
