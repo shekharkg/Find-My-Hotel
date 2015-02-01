@@ -39,6 +39,8 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
   private Dialog dialog;
   private DatePicker datePicker;
   private boolean isCheckInDialog;
+
+  // isLatLngSearch is used to determine search is going to take place using city name or using lat lng value.
   private static boolean isLatLngSearch;
   private EditText cityNameET;
   private ImageButton actionLatLng;
@@ -53,6 +55,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     initView();
   }
 
+  //Getting references of views
   private void initView() {
     calendar = Calendar.getInstance();
     actionCheckIn = (Button) findViewById(R.id.checkIn);
@@ -64,6 +67,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     initAction();
   }
 
+  //Display initial values to views
   private void populateData() {
     actionCheckIn.setText("Check In Date : " + calendar.get(Calendar.DAY_OF_MONTH) + "/" +
         (calendar.get(Calendar.MONTH) + 1) + "/" + calendar.get(Calendar.YEAR));
@@ -74,6 +78,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     isLatLngSearch = false;
   }
 
+  //Applying listeners to views
   private void initAction() {
     actionCheckIn.setOnClickListener(this);
     actionCheckOut.setOnClickListener(this);
@@ -82,17 +87,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     cityNameET.setOnClickListener(this);
   }
 
-  @Override
-  public boolean onCreateOptionsMenu(Menu menu) {
-    getMenuInflater().inflate(R.menu.menu_main, menu);
-    return true;
-  }
-
-  @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
-    return super.onOptionsItemSelected(item);
-  }
-
+  //Display date picker dialog
   public void showDatePickerDialog(String checkInOut, int yr, int mn, int day) {
     dialog = new Dialog(this);
     dialog.setTitle(checkInOut);
@@ -101,6 +96,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     datePicker.setCalendarViewShown(false);
     datePicker.updateDate(yr, mn, day);
 
+    //For limiting the date in date picker
     SimpleDateFormat sdf = new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss");
     Date date = null;
     try {
@@ -128,32 +124,38 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
 
     switch (v.getId()){
 
+      //Check in date button is clicked
       case R.id.checkIn:
         isCheckInDialog = true;
         showDatePickerDialog("Check Out Date", Integer.parseInt(minDateOut.split("/")[2].trim()),
             Integer.parseInt(minDateOut.split("/")[1].trim()) - 1, Integer.parseInt(minDateOut.split("/")[0].trim()));
         break;
 
+      //Check out date button is clicked
       case R.id.checkOut:
         isCheckInDialog = false;
         showDatePickerDialog("Check Out Date", Integer.parseInt(minDateOut.split("/")[2].trim()),
             Integer.parseInt(minDateOut.split("/")[1].trim()) - 1, Integer.parseInt(minDateOut.split("/")[0].trim()) + 1);
         break;
 
+      //cancelling the date picker dialog
       case R.id.cancelButton:
         dialog.dismiss();
         datePicker = null;
         dialog = null;
         break;
 
+      //Selecting date
       case R.id.saveButton:
         datePicked();
         break;
 
+      //Search for result
       case R.id.searchButton:
         validateSearchData();
         break;
 
+      //Option to choose lat lng using google map
       case R.id.chooseOnMapButton:
         FragmentManager fm = getFragmentManager();
         fm.popBackStack();
@@ -162,12 +164,15 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         mapDialog.show(fm, "map_dialog");
         break;
 
+      //Used to toggle between Lat Lang wise search and city wise search
       case R.id.selectCity:
         isLatLngSearch = false;
         break;
     }
   }
 
+
+  //DialogFragment to choose Lan Lng using google maps
   public static class MapDialog extends DialogFragment implements GoogleMap.OnMapLoadedCallback, GoogleMap.OnMapClickListener, GoogleMap.OnInfoWindowClickListener {
 
     @Override
@@ -224,6 +229,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
   }
 
 
+  //Before start searching, validating search data are correct or not
   private void validateSearchData() {
     String city = cityNameET.getText().toString();
     if(!isLatLngSearch && city.length() < 1){
@@ -236,6 +242,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     String checkOutDate = actionCheckOut.getText().toString().split(":")[1];
     checkOutDate = checkOutDate.split("/")[0].trim() + "/" + checkOutDate.split("/")[1].trim() + "/" + checkOutDate.split("/")[2].trim();
 
+    //If search data is correct then start new activity to display results
     Intent searchResult = new Intent(this, HotelListActivity.class);
     Universal U = new Universal();
     searchResult.putExtra(U.CITY,city);
@@ -249,6 +256,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
   }
 
 
+  //Changing view data when date is picked
   private void datePicked() {
     if(isCheckInDialog)
       actionCheckIn.setText("Check In Date : " + datePicker.getDayOfMonth() + "/" +
